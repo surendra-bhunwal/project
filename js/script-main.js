@@ -84,7 +84,7 @@ function initEliteFont() {
 function startWhenReady() {
     // Ezoic and other ad networks often defer or reorder scripts.
     // This checks if script-sub.js has loaded yet. If not, wait 50ms and try again.
-    if (typeof forward !== "function" || typeof crazyWithFlourishOrSymbols !== "function") {
+    if (typeof window.forward !== "function" || typeof window.crazyWithFlourishOrSymbols !== "function") {
         setTimeout(startWhenReady, 50);
         return;
     }
