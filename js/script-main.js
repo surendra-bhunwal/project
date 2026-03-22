@@ -1,22 +1,22 @@
 /* script-main.js - UI Logic & Event Handling (Vanilla JS) */
 
-document.addEventListener("DOMContentLoaded", function() {
-    const searchInput = document.querySelector(".fancytext");
-    const resultContainer = document.getElementById("result");
-    const loadMoreBtn = document.querySelector(".loadmore");
+function initEliteFont() {
+    var searchInput = document.querySelector(".fancytext");
+    var resultContainer = document.getElementById("result");
+    var loadMoreBtn = document.querySelector(".loadmore");
     
     if (!searchInput || !resultContainer) return;
 
-    let currentText = searchInput.value || "Elitefont";
-    let styleCount = 0;
+    var currentText = searchInput.value || "Elitefont";
+    var styleCount = 0;
 
     function getCategory() {
-        const path = window.location.pathname;
-        if (path.includes("instagram")) return "instagram";
-        if (path.includes("discord")) return "discord";
-        if (path.includes("nicks")) return "nicks";
-        if (path.includes("cursivas")) return "cursivas";
-        if (path.includes("bonitas")) return "bonitas";
+        var path = window.location.pathname;
+        if (path.indexOf("instagram") !== -1) return "instagram";
+        if (path.indexOf("discord") !== -1) return "discord";
+        if (path.indexOf("nicks") !== -1) return "nicks";
+        if (path.indexOf("cursivas") !== -1) return "cursivas";
+        if (path.indexOf("bonitas") !== -1) return "bonitas";
         return "general";
     }
 
@@ -26,30 +26,27 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
 
-        const category = getCategory();
-        const styles = forward(text, category);
+        var category = getCategory();
+        var styles = forward(text, category);
         
-        // forward returns an array now based on my last edit, but wait, 
-        // looking at script-sub.js line 180: return results.join("\n\n");
-        // It returns a string.
-        
-        const styleList = styles.split("\n\n");
+        var styleList = styles.split("\n\n");
         resultContainer.innerHTML = "";
         styleCount = 0;
 
-        styleList.forEach((style) => {
-            addStyleToUI(style);
-        });
+        for (var i = 0; i < styleList.length; i++) {
+            addStyleToUI(styleList[i]);
+        }
     }
 
     function addStyleToUI(style) {
-        const id = "copy_" + styleCount;
-        const div = document.createElement("div");
+        var id = "copy_" + styleCount;
+        var div = document.createElement("div");
         div.className = "input-group";
-        div.innerHTML = `
-            <input type="text" class="form-control" value="${style}" id="${id}" readonly>
-            <button class="copybutton" data-target="#${id}">Copie</button>
-        `;
+        // Escape double quotes to prevent breaking the HTML attribute
+        var escapedStyle = style.replace(/"/g, '&quot;');
+        div.innerHTML = 
+            '<input type="text" class="form-control" value="' + escapedStyle + '" id="' + id + '" readonly>' +
+            '<button class="copybutton" data-target="#' + id + '">Copie</button>';
         resultContainer.appendChild(div);
         styleCount++;
     }
@@ -57,36 +54,54 @@ document.addEventListener("DOMContentLoaded", function() {
     // Initial generation
     generateStyles(currentText);
 
-    // Input event
-    searchInput.addEventListener("input", function() {
+    // Input event - use oninput to prevent duplicate bindings if init runs multiple times
+    searchInput.oninput = function() {
         currentText = this.value;
         generateStyles(currentText);
-    });
+    };
 
     // Load more event
     if (loadMoreBtn) {
-        loadMoreBtn.addEventListener("click", function() {
+        loadMoreBtn.onclick = function() {
             if (!currentText) return;
             
-            const originalBtnText = this.textContent;
+            var self = this;
+            var originalBtnText = this.textContent;
             this.textContent = "Carregando...";
             
-            // Add 20 more random styles for better variety
-            setTimeout(() => {
-                for (let i = 0; i < 20; i++) {
+            setTimeout(function() {
+                for (var i = 0; i < 20; i++) {
                     addStyleToUI(crazyWithFlourishOrSymbols(currentText));
                 }
-                this.textContent = originalBtnText;
+                self.textContent = originalBtnText;
             }, 300);
-        });
+        };
     }
+}
 
-    // Copy functionality (Event Delegation)
+// Run initialization safely
+// This ensures the script runs even if the document is already fully loaded
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initEliteFont);
+} else {
+    initEliteFont();
+}
+
+// Handle bfcache (Back-Forward Cache)
+// This ensures the script re-initializes when you hit the "Back" button in the browser
+window.addEventListener("pageshow", function(event) {
+    if (event.persisted) {
+        initEliteFont();
+    }
+});
+
+// Copy functionality (Event Delegation) - Attach only once to document
+if (!window.copyListenerAttached) {
     document.addEventListener("click", function(e) {
         if (e.target && e.target.classList.contains("copybutton")) {
-            const btn = e.target;
-            const targetId = btn.getAttribute("data-target").replace("#", "");
-            const input = document.getElementById(targetId);
+            var btn = e.target;
+            var targetId = btn.getAttribute("data-target").replace("#", "");
+            var input = document.getElementById(targetId);
             
             if (input) {
                 input.select();
@@ -95,11 +110,11 @@ document.addEventListener("DOMContentLoaded", function() {
                 try {
                     document.execCommand("copy");
                     
-                    const originalText = btn.textContent;
+                    var originalText = btn.textContent;
                     btn.textContent = "Copiado!";
                     btn.style.backgroundColor = "#00bd93";
                     
-                    setTimeout(() => {
+                    setTimeout(function() {
                         btn.textContent = originalText;
                         btn.style.backgroundColor = "";
                     }, 2000);
@@ -109,12 +124,13 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
     });
-});
+    window.copyListenerAttached = true;
+}
 
 // Menu Toggle (Global)
 window.myMenu = function() {
-    const menu = document.getElementById("menu");
-    const overlay = document.getElementById("navOverlay");
+    var menu = document.getElementById("menu");
+    var overlay = document.getElementById("navOverlay");
     if (menu && overlay) {
         menu.classList.toggle("menu__active");
         overlay.classList.toggle("active");
