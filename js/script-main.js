@@ -81,11 +81,22 @@ function initEliteFont() {
 
 // Run initialization safely
 // This ensures the script runs even if the document is already fully loaded
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initEliteFont);
-} else {
-    initEliteFont();
+function startWhenReady() {
+    // Ezoic and other ad networks often defer or reorder scripts.
+    // This checks if script-sub.js has loaded yet. If not, wait 50ms and try again.
+    if (typeof forward !== "function" || typeof crazyWithFlourishOrSymbols !== "function") {
+        setTimeout(startWhenReady, 50);
+        return;
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initEliteFont);
+    } else {
+        initEliteFont();
+    }
 }
+
+startWhenReady();
 
 // Handle bfcache (Back-Forward Cache)
 // This ensures the script re-initializes when you hit the "Back" button in the browser
