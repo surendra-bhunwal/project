@@ -82,9 +82,17 @@ function initEliteFont() {
 // Run initialization safely
 // This ensures the script runs even if the document is already fully loaded
 function startWhenReady() {
+    // Check if this page has the generator UI. If not, we don't need to wait for script-sub.js
+    // We can't check the DOM yet because it might be loading, so we check the URL or just
+    // set a timeout limit. Better yet, check if script-sub.js is in the HTML.
+    var isGeneratorPage = window.location.pathname === "/" || 
+                          window.location.pathname === "/index.html" ||
+                          window.location.pathname.indexOf("letras") !== -1 ||
+                          window.location.pathname.indexOf("nicks") !== -1;
+
     // Ezoic and other ad networks often defer or reorder scripts.
     // This checks if script-sub.js has loaded yet. If not, wait 50ms and try again.
-    if (typeof window.forward !== "function" || typeof window.crazyWithFlourishOrSymbols !== "function") {
+    if (isGeneratorPage && (typeof window.forward !== "function" || typeof window.crazyWithFlourishOrSymbols !== "function")) {
         setTimeout(startWhenReady, 50);
         return;
     }
